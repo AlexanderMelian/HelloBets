@@ -1,6 +1,6 @@
-Hello bets its an alternative to 1xbet or similars
+Hello bets is an alternative to 1xbet and similar platforms
 
-This is my database diagram
+This is my current database diagram
 
 ```mermaid
 erDiagram
@@ -54,3 +54,5 @@ erDiagram
 
 
 ```
+
+The first step is to build a functional monolith, conduct performance tests and scale.
