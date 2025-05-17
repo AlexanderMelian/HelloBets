@@ -56,3 +56,12 @@ erDiagram
 ```
 
 The first step is to build a functional monolith, conduct performance tests and scale.
+
+TODO:
+
+DATABASE
+RATE_LIMITER
+PASSWORD_TRY_LIMIT
+CONTROLLER_VALIDATIONS
+ISS_AUD_VALIDATION_TO_JWT
+GENERIC_ERRORS_RETURN
