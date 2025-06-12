@@ -1,0 +1,48 @@
+version: '3.7'
+
+services:
+  hello-bets:
+    image: hello-bets-service
+    build:
+      context: .
+      dockerfile: ./hello-bets.service.dockerfile
+    environment:
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      DB_HOST: database
+      DB_PORT: ${POSTGRES_PORT}
+    ports:
+      - "8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    networks:
+      - backend_network
+  database:
+    image: 'postgres:14.0'
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB}"]
+      interval: 5s
+      retries: 5
+      timeout: 5s
+
+volumes:
+  postgres_data:
+
+networks:
+  backend_network:
+    driver: bridge

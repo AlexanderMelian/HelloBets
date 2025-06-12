@@ -1,7 +1,7 @@
-package auth
+package security
 
 import (
-	"hello_bets/intern/model"
+	"hello_bets/pkg/model"
 	"os"
 	"time"
 

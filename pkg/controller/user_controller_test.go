@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"hello_bets/intern/model"
-	"hello_bets/intern/model/dto"
+	"hello_bets/pkg/model"
+	"hello_bets/pkg/model/dto"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -39,7 +39,7 @@ func (m MockUserService) CreateUser(user *dto.UserRequest) (*model.User, error) 
 	return &newUser, nil
 }
 
-func (m MockUserService) FindBy(column string, value any) ([]*model.User, error) {
+func (m MockUserService) FindBy(column string, value any, single bool) (any, error) {
 	users := GetUsers()
 	var result []*model.User
 	for _, user := range users {
@@ -62,17 +62,30 @@ func (m MockUserService) GetUserByID(id int) (*model.User, error) {
 	return nil, nil
 }
 
-// UpdateUser implements service.UserService.
 func (m MockUserService) UpdateUser(user *dto.UserRequest) (*model.User, error) {
+	panic("unimplemented")
+}
+
+func (m MockUserService) DeleteUser(id int) error {
+	panic("unimplemented")
+}
+
+func (m MockUserService) CheckPassword(password, hashPassword string) bool {
+	panic("unimplemented")
+}
+
+func (m MockUserService) GenerateToken(user *model.User) (string, error) {
 	panic("unimplemented")
 }
 
 func TestGetUserByID(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// Simular el servicio de usuario
 	mockService := MockUserService{}
-	controller := NewUserController(mockService)
+	controller, err := NewUserController(mockService)
+	if err != nil {
+		t.Fatalf("Failed to create user controller: %v", err)
+	}
 
 	router := gin.Default()
 	router.GET("/users/:id", controller.GetUserByID)
@@ -82,16 +95,17 @@ func TestGetUserByID(t *testing.T) {
 
 	router.ServeHTTP(resp, req)
 
-	// Verificar el código de respuesta
 	assert.Equal(t, http.StatusOK, resp.Code)
 }
 
 func TestGetUserByIDNotFound(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// Simular el servicio de usuario
 	mockService := MockUserService{}
-	controller := NewUserController(mockService)
+	controller, err := NewUserController(mockService)
+	if err != nil {
+		t.Fatalf("Failed to create user controller: %v", err)
+	}
 
 	router := gin.Default()
 	router.GET("/users/:id", controller.GetUserByID)
@@ -100,6 +114,5 @@ func TestGetUserByIDNotFound(t *testing.T) {
 
 	router.ServeHTTP(resp, req)
 
-	// Verificar el código de respuesta
 	assert.Equal(t, http.StatusNotFound, resp.Code)
 }

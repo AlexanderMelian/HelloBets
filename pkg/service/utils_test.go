@@ -9,7 +9,7 @@ func TestIsValidEmail(t *testing.T) {
 		"test@asdasd.com",
 	}
 	for _, email := range emails {
-		if !IsValidEmail(email) {
+		if !IsValidEmail(email, "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") {
 			t.Errorf("Expected %s to be valid", email)
 		}
 	}
@@ -22,7 +22,7 @@ func TestIsInvalidEmail(t *testing.T) {
 		"test@",
 	}
 	for _, email := range emails {
-		if IsValidEmail(email) {
+		if IsValidEmail(email, "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") {
 			t.Errorf("Expected %s to be invalid", email)
 		}
 	}
