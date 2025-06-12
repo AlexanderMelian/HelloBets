@@ -146,22 +146,26 @@ func (c *UserControllerImpl) Login(ctx *gin.Context) {
 		ctx.JSON(400, gin.H{"error": "Username and password are required"})
 		return
 	}
-	user, err := c.userService.FindBy("username", LoginRequest.Username, true)
-
+	userAny, err := c.userService.FindBy("username", LoginRequest.Username, true)
 	if err != nil {
 		ctx.JSON(404, gin.H{"error": "User not found"})
 		return
 	}
-	if user == nil {
+	if userAny == nil {
 		ctx.JSON(404, gin.H{"error": "User not found"})
 		return
 	}
+	user, ok := userAny.(*model.User)
+	if !ok {
+		ctx.JSON(500, gin.H{"error": "Internal server error"})
+		return
+	}
 
-	if !c.userService.CheckPassword(user.(*model.User).Password, LoginRequest.Password) {
+	if !c.userService.CheckPassword(LoginRequest.Password, user.Password) {
 		ctx.JSON(401, gin.H{"error": "Invalid credentials"})
 		return
 	}
-	token, err := c.userService.GenerateToken(user.(*model.User))
+	token, err := c.userService.GenerateToken(user)
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": "Failed to generate token"})
 		return
