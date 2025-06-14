@@ -1,29 +1,34 @@
 package configuration
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+	"log"
+	"os"
+)
 
 type Config struct {
-	PatternMail string `mapstrcture:"PATTERN_MAIL"`
-	DBUser      string `mapstructure:"DB_USER"`
-	DBPassword  string `mapstructure:"DB_PASSWORD"`
-	DBHost      string `mapstructure:"DB_HOST"`
-	DBPort      string `mapstructure:"DB_PORT"`
-	DBName      string `mapstructure:"DB_NAME"`
+	DBUser      string
+	DBPassword  string
+	DBHost      string
+	DBPort      string
+	DBName      string
+	PatternMail string
 }
 
 func LoadConfig() (*Config, error) {
-	viper.SetConfigName("config")
-	viper.SetConfigType("env")
-	viper.AddConfigPath(".")
-
-	viper.AutomaticEnv()
-
-	viper.SetDefault("PATTERN_MAIL", `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, err
+	var cfg = &Config{
+		DBUser:      os.Getenv("POSTGRES_USER"),
+		DBPassword:  os.Getenv("POSTGRES_PASSWORD"),
+		DBHost:      os.Getenv("POSTGRES_HOST"),
+		DBPort:      os.Getenv("POSTGRES_PORT"),
+		DBName:      os.Getenv("POSTGRES_DB"),
+		PatternMail: os.Getenv("PATTERN_MAIL"),
 	}
 
-	return &config, nil
+	log.Println("Configuration loaded:", cfg)
+
+	if cfg.DBUser == "" || cfg.DBPassword == "" {
+		return nil, fmt.Errorf("missing critical DB env vars")
+	}
+	return cfg, nil
 }

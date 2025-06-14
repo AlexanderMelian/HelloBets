@@ -57,11 +57,18 @@ erDiagram
 
 The first step is to build a functional monolith, conduct performance tests and scale.
 
-TODO:
+## How to Run
+To get started with the project, use the following commands:
+```sh
+make build   # Build the application
+make up      # Start the application
+```
 
-DATABASE
-RATE_LIMITER
-PASSWORD_TRY_LIMIT
-CONTROLLER_VALIDATIONS
-ISS_AUD_VALIDATION_TO_JWT
-GENERIC_ERRORS_RETURN
+## TODO
+
+- [ ] Implement all database tables (`ALL_TABLES`)
+- [ ] Add rate limiting to API endpoints (`RATE_LIMITER`)
+- [ ] Enforce password attempt limits (`PASSWORD_TRY_LIMIT`)
+- [ ] Add controller-level input validations (`CONTROLLER_VALIDATIONS`)
+- [ ] Validate `iss` and `aud` claims in JWTs (`ISS_AUD_VALIDATION_TO_JWT`)
+- [ ] Standardize and improve generic error responses (`GENERIC_ERRORS_RETURN`)

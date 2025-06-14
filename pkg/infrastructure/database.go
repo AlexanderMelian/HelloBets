@@ -11,7 +11,7 @@ import (
 
 func buildConnectionString(user, password, host, port, dbName string) string {
 	return fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=America/Argentina/Buenos_Aires",
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
 		host, user, password, dbName, port,
 	)
 }
