@@ -4,54 +4,66 @@ This is my current database diagram
 
 ```mermaid
 erDiagram
-    User{
+    User {
         long id
         string username
         string password
         string email
         decimal money  
+        boolean enabled
+        datetime createdAt
+        datetime updatedAt
     }
 
-    Bet{
-        long Id
+    Bet {
+        long id
         long userId
         long quotaId
         decimal quantity
+        string status
+        datetime createdAt
     }
 
-    Quota{
+    Quota {
         long id
         decimal percentage
         long marketId
+        datetime createdAt
     }
 
-    Event{
+    Event {
         long id
         string name
-        date date
+        date eventDate
         string status
+        boolean isOpen
+        datetime createdAt
+        datetime updatedAt
     }
 
-    Market{
+    Market {
         long id
         string type
         long eventId
+        datetime createdAt
+        datetime updatedAt
     }  
 
-    Transaction{
+    Transaction {
         long id
         long userId
         decimal quantity
-        string type
+        int type
+        int status
         date date
+        datetime createdAt
     }
 
-    User ||--o{ Bet : make
+    User ||--o{ Bet : makes
     Event ||--o{ Market : has
-    Market ||--o{ Quota : define
+    Market ||--o{ Quota : defines
     Quota ||--o{ Bet : associated_with
-    User ||--o{ Transaction : make
-
+    User ||--o{ Transaction : performs
 
 ```
 
@@ -64,8 +76,15 @@ make build   # Build the application
 make up      # Start the application
 ```
 
-## TODO
+## Types of transactions
+- [ ] Deposit
+- [ ] Transfer For Accounts
+- [ ] Withdraw
+- [ ] Bet
+- [ ] Cancel Bet
 
+
+## TODO
 - [ ] Implement all database tables (`ALL_TABLES`)
 - [ ] Add rate limiting to API endpoints (`RATE_LIMITER`)
 - [ ] Enforce password attempt limits (`PASSWORD_TRY_LIMIT`)

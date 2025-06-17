@@ -16,13 +16,9 @@ import (
 func main() {
 	fmt.Println("Starting Hello Bets...")
 
-	// Cargar configuración
 	config := loadConfig()
 
-	// Conectar a la base de datos
 	db := connectDatabase(config)
-
-	// Verificar conexión a la base de datos
 	if db == nil {
 		log.Fatal("Failed to connect to the database")
 	}
@@ -36,17 +32,17 @@ func main() {
 		}
 		log.Println("Database connection closed successfully")
 	}()
-
-	// Migrar la base de datos
 	migrateDatabase(db)
 
-	// Inicializar repositorio, servicio y controlador
-	repo := initializeRepository(db)
-	svc := initializeService(config, repo)
-	ctrl := initializeController(svc)
+	repoUser := initializeUserRepository(db)
+	svcUser := initializeUserService(config, repoUser)
+	ctrlUser := initializeUserController(svcUser)
 
-	// Iniciar el servidor
-	startServer(ctrl, svc)
+	repoTran := initializeTransactionRepository(db)
+	svcTran := initializeTransactionService(repoTran)
+	ctrlTran := initializeTransactionController(svcTran)
+
+	startServer(ctrlUser, ctrlTran)
 }
 
 func loadConfig() *configuration.Config {
@@ -83,7 +79,7 @@ func migrateDatabase(db *gorm.DB) {
 	log.Println("Database migration completed successfully")
 }
 
-func initializeRepository(db *gorm.DB) repository.UserRepository {
+func initializeUserRepository(db *gorm.DB) repository.UserRepository {
 	log.Println("Initializing user repository...")
 	repo, err := repository.NewUserRepository(db)
 	if err != nil {
@@ -93,7 +89,7 @@ func initializeRepository(db *gorm.DB) repository.UserRepository {
 	return repo
 }
 
-func initializeService(config *configuration.Config, repo repository.UserRepository) service.UserService {
+func initializeUserService(config *configuration.Config, repo repository.UserRepository) service.UserService {
 	log.Println("Initializing user service...")
 	svc, err := service.NewUserServiceImpl(config, repo)
 	if err != nil {
@@ -103,7 +99,7 @@ func initializeService(config *configuration.Config, repo repository.UserReposit
 	return svc
 }
 
-func initializeController(svc service.UserService) controller.UserController {
+func initializeUserController(svc service.UserService) controller.UserController {
 	log.Println("Initializing user controller...")
 	ctrl, err := controller.NewUserController(svc)
 	if err != nil {
@@ -112,9 +108,38 @@ func initializeController(svc service.UserService) controller.UserController {
 	log.Println("User controller initialized successfully")
 	return ctrl
 }
+func initializeTransactionController(svc service.TransactionService) controller.TransactionController {
+	log.Println("Initializing transaction controller...")
+	ctrl, err := controller.NewTransactionController(svc)
+	if err != nil {
+		log.Fatalf("Error creating transaction controller: %v", err)
+	}
+	log.Println("Transaction controller initialized successfully")
+	return ctrl
+}
 
-func startServer(ctrl controller.UserController, svc service.UserService) {
+func initializeTransactionService(repo repository.TransactionRepository) service.TransactionService {
+	svc, err := service.NewTransactionServiceImpl(repo)
+	if err != nil {
+		log.Fatalf("Error creating transaction service: %v", err)
+	}
+	log.Println("Transaction service initialized successfully")
+	return svc
+}
+
+func initializeTransactionRepository(db *gorm.DB) repository.TransactionRepository {
+	log.Println("Initializing transaction service...")
+	repo, err := repository.NewTransactionRepositoryImpl(db)
+	if err != nil {
+		log.Fatalf("Error creating transaction repository: %v", err)
+	}
+	log.Println("Transaction repository initialized successfully")
+	return repo
+
+}
+
+func startServer(user controller.UserController, transfer controller.TransactionController) {
 	log.Println("Starting server on port 8080...")
-	rest.StartServer(ctrl, svc)
+	rest.StartServer(user, transfer)
 	log.Println("Server started successfully on port 8080")
 }

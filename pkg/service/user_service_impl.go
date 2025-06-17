@@ -40,10 +40,22 @@ func (s *UserServiceImpl) GetUserByID(id int) (*model.User, error) {
 }
 
 func (s *UserServiceImpl) CreateUser(user *dto.UserRequest) (*model.User, error) {
+	if usernameExists, err := s.userRepository.FindByOne("username", user.Username); err != nil {
+		log.Printf("Error checking username: %v", err)
+		return nil, errors.New("failed to check username")
+	} else if usernameExists != nil {
+		return nil, errors.New("username already exists")
+	}
 	if !IsValidEmail(user.Email, s.configuration.PatternMail) {
 		return nil, errors.New("invalid email format")
 	}
-	if IsValidPassword(user.Password) {
+	if emailExists, err := s.userRepository.FindByOne("email", user.Email); err != nil {
+		log.Printf("Error checking email: %v", err)
+		return nil, errors.New("failed to check email")
+	} else if emailExists != nil {
+		return nil, errors.New("email already exists")
+	}
+	if !IsValidPassword(user.Password) {
 		return nil, errors.New("invalid password format")
 	}
 	passwordHashed, err := HashPassword(user.Password)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hello_bets/pkg/model"
 	"log"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -30,6 +31,7 @@ func Connect(user, password, host, port, dbName string) (*gorm.DB, error) {
 				return nil, err
 			} else {
 				attempts--
+				time.Sleep(2 * time.Second)
 			}
 		} else {
 			break

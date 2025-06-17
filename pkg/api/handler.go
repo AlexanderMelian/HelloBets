@@ -3,46 +3,60 @@ package rest
 import (
 	"hello_bets/pkg/controller"
 	"hello_bets/pkg/middleware"
-	"hello_bets/pkg/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-type UserHandler struct {
-	userController controller.UserController
-	userService    service.UserService
+type APIHandler struct {
+	userController        controller.UserController
+	transactionController controller.TransactionController
 }
 
-func NewHandler(s service.UserService, c controller.UserController) (*UserHandler, error) {
-	return &UserHandler{userService: s, userController: c}, nil
+func NewHandler(
+	userController controller.UserController,
+	transactionController controller.TransactionController,
+) (*APIHandler, error) {
+	return &APIHandler{
+		userController:        userController,
+		transactionController: transactionController,
+	}, nil
 }
 
-func (h *UserHandler) Routers() *gin.Engine {
+func (h *APIHandler) Routers() *gin.Engine {
 	r := gin.Default()
 	loginGroup := r.Group("/api/v1/login")
 	h.loginRouter(loginGroup)
 	userGroup := r.Group("/api/v1/user")
 	h.userRouter(userGroup)
+	transferGroup := r.Group("/api/v1/transfer")
+	h.transferRouter(transferGroup)
 	return r
 
 }
 
-func (h *UserHandler) loginRouter(r *gin.RouterGroup) {
+func (h *APIHandler) loginRouter(r *gin.RouterGroup) {
 	r.POST("/login", h.userController.Login)
 }
 
-func (h *UserHandler) userRouter(r *gin.RouterGroup) {
+func (h *APIHandler) userRouter(r *gin.RouterGroup) {
 	r.POST("/", h.userController.CreateUser)
 
-	r.Use(middleware.ProtectedHandler())
-	r.GET("/:id", h.userController.GetUserByID)
-	r.PUT("/:id", h.userController.UpdateUser)
-	r.DELETE("/:id", h.userController.DeleteUser)
-	r.GET("/", h.userController.FindBy)
+	protected := r.Group("/")
+	protected.Use(middleware.ProtectedHandler())
+	protected.GET("/:id", h.userController.GetUserByID)
+	protected.PUT("/:id", h.userController.UpdateUser)
+	protected.DELETE("/:id", h.userController.DeleteUser)
+	protected.GET("/", h.userController.FindBy)
 }
 
-func StartServer(userController controller.UserController, userSevice service.UserService) {
-	handler, err := NewHandler(userSevice, userController)
+func (h *APIHandler) transferRouter(r *gin.RouterGroup) {
+	protected := r.Group("/")
+	protected.Use(middleware.ProtectedHandler())
+	protected.POST("/", h.transactionController.DepositMoney)
+}
+
+func StartServer(userController controller.UserController, transactionController controller.TransactionController) {
+	handler, err := NewHandler(userController, transactionController)
 	if err != nil {
 		panic("failed to create handler: " + err.Error())
 	}
