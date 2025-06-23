@@ -13,4 +13,5 @@ type UserService interface {
 	DeleteUser(id int) error
 	CheckPassword(password, HashPassword string) bool
 	GenerateToken(user *model.User) (string, error)
+	AddCredit(user *model.User) error
 }

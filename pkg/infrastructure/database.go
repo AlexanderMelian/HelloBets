@@ -27,7 +27,7 @@ func Connect(user, password, host, port, dbName string) (*gorm.DB, error) {
 		connection, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
 			if attempts == 0 {
-				log.Fatalf("Error retry database: %v", err)
+				log.Println("Error retry database: ", err)
 				return nil, err
 			} else {
 				attempts--

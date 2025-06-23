@@ -107,6 +107,19 @@ func (s *UserServiceImpl) UpdateUser(user *dto.UserRequest) (*model.User, error)
 	return userToUpdate, nil
 }
 
+func (s *UserServiceImpl) AddCredit(user *model.User) error {
+	if user == nil {
+		return errors.New("user is nil")
+	}
+
+	user, err := s.userRepository.UpdateUser(user)
+	if err != nil {
+		log.Printf("Error updating user: %v", err)
+		return errors.New("failed to update user")
+	}
+	return nil
+}
+
 func (s *UserServiceImpl) FindBy(column string, value any, single bool) (any, error) {
 	err := validateColumn(column)
 	if err != nil {

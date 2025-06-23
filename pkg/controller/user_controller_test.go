@@ -78,6 +78,10 @@ func (m MockUserService) GenerateToken(user *model.User) (string, error) {
 	panic("unimplemented")
 }
 
+func (m MockUserService) AddCredit(user *model.User) error {
+	panic("unimplemented")
+}
+
 func TestGetUserByID(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

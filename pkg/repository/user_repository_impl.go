@@ -18,7 +18,6 @@ func NewUserRepository(db *gorm.DB) (UserRepository, error) {
 	return &UserRepositoryImpl{db: db}, nil
 }
 
-// CreateUser implements UserRepository.
 func (u *UserRepositoryImpl) CreateUser(user *model.User) (*model.User, error) {
 	if err := u.db.Create(user).Error; err != nil {
 		return nil, err
@@ -26,7 +25,6 @@ func (u *UserRepositoryImpl) CreateUser(user *model.User) (*model.User, error) {
 	return user, nil
 }
 
-// DeleteUser implements UserRepository.
 func (u *UserRepositoryImpl) DeleteUser(id int) error {
 	var user model.User
 	if err := u.db.First(&user, id).Error; err != nil {

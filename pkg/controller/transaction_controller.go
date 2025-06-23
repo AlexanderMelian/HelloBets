@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"hello_bets/pkg/model/dto"
 	"hello_bets/pkg/service"
 	"strconv"
 
@@ -19,11 +20,11 @@ type TransactionControllerImpl struct {
 	transactionService service.TransactionService
 }
 
-func NewTransactionController(service service.TransactionService) (*TransactionControllerImpl, error) {
-	if service == nil {
+func NewTransactionController(transactionService service.TransactionService) (*TransactionControllerImpl, error) {
+	if transactionService == nil {
 		return nil, fmt.Errorf("user service is nil")
 	}
-	return &TransactionControllerImpl{transactionService: service}, nil
+	return &TransactionControllerImpl{transactionService: transactionService}, nil
 }
 
 func (c *TransactionControllerImpl) FindBy(ctx *gin.Context) {
@@ -59,8 +60,23 @@ func (c *TransactionControllerImpl) TransferMoneyFromTo(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "TransferMoneyFromTo method not implemented"})
 }
 func (c *TransactionControllerImpl) DepositMoney(ctx *gin.Context) {
-	// Implement the logic to deposit money into a user's account
-	// This is a placeholder for the actual implementation
+
+	depositRequest := &dto.DepositRequest{}
+	if err := ctx.ShouldBindJSON(depositRequest); err != nil {
+		ctx.JSON(400, gin.H{"error": "invalid request"})
+		return
+	}
+
+	if depositRequest.UserID <= 0 || depositRequest.Amount <= 0 {
+		ctx.JSON(400, gin.H{"error": "invalid user ID or amount"})
+		return
+	}
+
+	///if err := c.transactionService.DepositMoney(depositRequest.UserID, depositRequest.Amount); err != nil {
+	//	ctx.JSON(400, gin.H{"error": err.Error()})
+	//	return
+	//}
+
 	ctx.JSON(200, gin.H{"message": "DepositMoney method not implemented"})
 }
 func (c *TransactionControllerImpl) WithdrawMoney(ctx *gin.Context) {
