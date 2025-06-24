@@ -12,5 +12,5 @@ type TransactionService interface {
 	TransferMoneyFromTo(fromUserId, toUserId int, amount decimal.Decimal) (model.Transaction, error)
 	DepositMoney(userId int, amount decimal.Decimal) error
 	WithdrawMoney(userId int, amount decimal.Decimal) (model.Transaction, error)
-	AddCredit(amout decimal.Decimal, operationType enums.Type, userId *model.User) error
+	AddCredit(amount decimal.Decimal, operationType enums.Type, userId *model.User) error
 }

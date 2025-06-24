@@ -112,7 +112,7 @@ func (s *UserServiceImpl) AddCredit(user *model.User) error {
 		return errors.New("user is nil")
 	}
 
-	user, err := s.userRepository.UpdateUser(user)
+	_, err := s.userRepository.UpdateUser(user)
 	if err != nil {
 		log.Printf("Error updating user: %v", err)
 		return errors.New("failed to update user")
@@ -158,7 +158,6 @@ func (s *UserServiceImpl) DeleteUser(id int) error {
 }
 
 func (s *UserServiceImpl) CheckPassword(password string, HashPassword string) bool {
-	loginCounter()
 	return CheckPasswordHash(password, HashPassword)
 }
 
@@ -177,9 +176,4 @@ func validateColumn(column string) error {
 		return errors.New("invalid column name")
 	}
 	return nil
-}
-
-func loginCounter() int {
-
-	return 0
 }

@@ -15,52 +15,121 @@ type TransactionServiceImpl struct {
 	userService        UserService
 }
 
-// DepositMoney implements TransactionService.
 func (t *TransactionServiceImpl) DepositMoney(userId int, amount decimal.Decimal) error {
 	user, err := t.userService.GetUserByID(userId)
-
 	if err != nil {
 		return err
 	}
 	if user == nil {
 		return errors.New("user not found")
 	}
-
-	AddCreditErr := t.AddCredit(amount, enums.Deposit, user)
-	if AddCreditErr != nil {
-		log.Println("Error adding credit:", AddCreditErr)
-		return AddCreditErr
+	if amount.LessThanOrEqual(decimal.Zero) {
+		return errors.New("amount must be greater than zero")
 	}
-
-	transaction := model.Transaction{
-		UserID: userId,
-		Amount: amount,
-		Status: 0,
-		Type:   0,
+	if err := t.AddCredit(amount, enums.Deposit, user); err != nil {
+		log.Printf("Error adding credit: %v", err)
 	}
-
-	transactionPtr, err := t.transactionService.CreateTransaction(&transaction)
-	if err != nil {
-		return err
-	}
-	transaction = *transactionPtr
-	log.Println("Transaction created:", transaction)
 	return nil
 }
 
 // FindBy implements TransactionService.
-func (*TransactionServiceImpl) FindBy(column string, value any, single bool) (any, error) {
-	panic("unimplemented")
+func (t *TransactionServiceImpl) FindBy(column string, value any, single bool) (any, error) {
+	if single {
+		t.transactionService.FindByOne(column, value)
+	}
+	return t.transactionService.FindByMany(column, value)
 }
 
 // TransferMoneyFromTo implements TransactionService.
-func (*TransactionServiceImpl) TransferMoneyFromTo(fromUserId, toUserId int, amount decimal.Decimal) (model.Transaction, error) {
-	panic("unimplemented")
+func (t *TransactionServiceImpl) TransferMoneyFromTo(fromUserId, toUserId int, amount decimal.Decimal) (model.Transaction, error) {
+	if amount.LessThanOrEqual(decimal.Zero) {
+		return model.Transaction{}, errors.New("amount must be greater than zero")
+	}
+
+	fromUser, err := t.userService.GetUserByID(fromUserId)
+	if err != nil {
+		return model.Transaction{}, err
+	}
+	if fromUser == nil {
+		return model.Transaction{}, errors.New("from user not found")
+	}
+
+	toUser, err := t.userService.GetUserByID(toUserId)
+	if err != nil {
+		return model.Transaction{}, err
+	}
+	if toUser == nil {
+		return model.Transaction{}, errors.New("to user not found")
+	}
+
+	if fromUser.Money.LessThan(amount) {
+		return model.Transaction{}, errors.New("insufficient funds")
+	}
+
+	fromUser.Money = fromUser.Money.Sub(amount)
+	toUser.Money = toUser.Money.Add(amount)
+
+	if err := t.userService.AddCredit(fromUser); err != nil {
+		return model.Transaction{}, err
+	}
+
+	if err := t.userService.AddCredit(toUser); err != nil {
+		return model.Transaction{}, err
+	}
+
+	transactionFrom := &model.Transaction{
+		UserID: fromUser.ID,
+		Amount: amount,
+		Status: 0,
+		Type:   enums.Transfer,
+	}
+
+	if _, err := t.transactionService.CreateTransaction(transactionFrom); err != nil {
+		return model.Transaction{}, err
+	}
+
+	transactionTo := &model.Transaction{
+		UserID: toUser.ID,
+		Amount: amount,
+		Status: 0,
+		Type:   enums.Transfer,
+	}
+	if _, err := t.transactionService.CreateTransaction(transactionTo); err != nil {
+		return model.Transaction{}, err
+	}
+
+	return *transactionFrom, nil
 }
 
-// WithdrawMoney implements TransactionService.
-func (*TransactionServiceImpl) WithdrawMoney(userId int, amount decimal.Decimal) (model.Transaction, error) {
-	panic("unimplemented")
+func (t *TransactionServiceImpl) WithdrawMoney(userId int, amount decimal.Decimal) (model.Transaction, error) {
+	if amount.LessThanOrEqual(decimal.Zero) {
+		return model.Transaction{}, errors.New("amount must be greater than zero")
+	}
+
+	user, err := t.userService.GetUserByID(userId)
+	if err != nil {
+		return model.Transaction{}, err
+	}
+	if user == nil {
+		return model.Transaction{}, errors.New("user not found")
+	}
+
+	if user.Money.LessThan(amount) {
+		return model.Transaction{}, errors.New("insufficient funds")
+	}
+
+	user.Money = user.Money.Sub(amount)
+	if err := t.userService.AddCredit(user); err != nil {
+		return model.Transaction{}, err
+	}
+
+	tx := &model.Transaction{UserID: userId, Amount: amount.Neg(), Status: enums.Accepted, Type: enums.Withdraw}
+	tx, err = t.transactionService.CreateTransaction(tx)
+	if err != nil {
+		return model.Transaction{}, err
+	}
+
+	return *tx, nil
 }
 
 func (t *TransactionServiceImpl) AddCredit(amount decimal.Decimal, operationType enums.Type, user *model.User) error {
@@ -82,7 +151,7 @@ func (t *TransactionServiceImpl) AddCredit(amount decimal.Decimal, operationType
 	transaction := &model.Transaction{
 		UserID: user.ID,
 		Amount: amount,
-		Status: 0,
+		Status: enums.Accepted,
 		Type:   operationType,
 	}
 
